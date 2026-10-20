@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9fd">
+  <meta name="description" content="Catat makanan, pantau makro, dan kelola target nutrisi harian dengan NutriMacro.">
+  <title>NutriMacro — Kalkulator Gizi Harian</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #faf9fd;
+      --surface: #fff;
+      --surface-soft: #f7f5fb;
+      --surface-tint: #f3f0fa;
+      --border: #eee9f5;
+      --ink: #1e1b2e;
+      --muted: #6f6a7d;
+      --purple: #6c2bd9;
+      --purple-dark: #4e1ba5;
+      --purple-pale: #ede9fe;
+      --amber: #f59e0b;
+      --amber-pale: #fef3c7;
+      --blue: #0ea5e9;
+      --blue-pale: #e0f2fe;
+      --rose: #f43f5e;
+      --rose-pale: #ffe4e6;
+      --danger: #b42318;
+      --danger-pale: #fee4e2;
+      --shadow: 0 4px 20px -2px rgba(108, 43, 217, .07);
+      --shadow-raised: 0 16px 44px -14px rgba(30, 27, 46, .25);
+      --radius: 16px;
+      font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font-size: 14px; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid rgba(108, 43, 217, .35); outline-offset: 2px;
+    }
+    .icon { font-family: "Material Symbols Outlined"; font-weight: normal; font-style: normal; font-size: 20px; line-height: 1; display: inline-flex; white-space: nowrap; direction: ltr; font-feature-settings: "liga"; -webkit-font-feature-settings: "liga"; -webkit-font-smoothing: antialiased; }
+    .topbar { position: sticky; z-index: 10; top: 0; background: rgba(255,255,255,.91); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border); }
+    .topbar-inner { max-width: 1240px; height: 68px; padding: 0 24px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { display: inline-flex; align-items: center; gap: 9px; color: var(--purple); text-decoration: none; font-size: 20px; font-weight: 800; letter-spacing: -.6px; white-space: nowrap; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 11px; display: grid; place-items: center; color: white; background: linear-gradient(145deg, #8248ed, #5520b7); box-shadow: 0 5px 12px rgba(108,43,217,.23); }
+    .nav { display: flex; gap: 5px; padding: 4px; border-radius: 999px; background: var(--surface-tint); }
+    .nav button { border: 0; border-radius: 999px; background: transparent; color: var(--muted); padding: 9px 14px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .nav button.active { background: var(--purple); color: white; box-shadow: 0 2px 7px rgba(108,43,217,.18); }
+    .top-date { color: var(--muted); font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .container { max-width: 1240px; padding: 26px 24px 50px; margin: auto; min-height: calc(100vh - 180px); }
+    .page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+    h1 { margin: 0; font-size: clamp(24px,3vw,32px); line-height: 1.2; letter-spacing: -.9px; }
+    h2, h3, p { margin-top: 0; }
+    .eyebrow { margin: 0 0 7px; color: var(--purple); font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    .subheading { margin: 8px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .card-pad { padding: 20px; }
+    .datebar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; padding: 12px 16px; }
+    .date-controls { display: flex; align-items: center; gap: 10px; }
+    .date-label { min-width: 200px; text-align: center; font-weight: 700; }
+    .date-label small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 600; }
+    .date-arrow, .icon-button { border: 0; width: 42px; height: 42px; border-radius: 50%; display: inline-grid; place-items: center; color: var(--purple); background: var(--surface-tint); }
+    .date-arrow:hover, .icon-button:hover { background: var(--purple-pale); }
+    .button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border: 0; border-radius: 999px; font-weight: 700; text-decoration: none; transition: transform .15s, background .15s; }
+    .button:active { transform: scale(.96); }
+    .button-primary { background: var(--amber); color: #2b210e; box-shadow: 0 5px 14px rgba(245,158,11,.22); }
+    .button-primary:hover { background: #e89505; }
+    .button-purple { color: white; background: var(--purple); }
+    .button-purple:hover { background: var(--purple-dark); }
+    .button-soft { color: var(--purple); background: var(--surface-tint); }
+    .button-soft:hover { background: var(--purple-pale); }
+    .button-danger { color: var(--danger); background: var(--danger-pale); }
+    .button-small { min-height: 36px; padding: 7px 12px; font-size: 12px; }
+    .dashboard-top { display: grid; grid-template-columns: minmax(340px, 5fr) minmax(0, 7fr); gap: 16px; margin-bottom: 16px; }
+    .calorie-card { padding: 21px; overflow: hidden; position: relative; }
+    .card-title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .title-with-icon { display: flex; align-items: center; gap: 8px; }
+    .title-with-icon .icon { color: var(--purple); }
+    .card h2, .card h3 { margin-bottom: 0; }
+    .section-title { font-size: 17px; font-weight: 700; letter-spacing: -.25px; }
+    .balance { padding: 6px 10px; border-radius: 999px; color: #8a5800; background: var(--amber-pale); font-size: 10px; font-weight: 800; white-space: nowrap; }
+    .balance.over { color: var(--danger); background: var(--danger-pale); }
+    .calorie-body { display: flex; align-items: center; justify-content: space-around; gap: 18px; padding: 19px 0 14px; }
+    .ring-wrap { width: 172px; height: 172px; position: relative; flex: 0 0 auto; }
+    .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .ring-bg, .ring-value { fill: none; stroke-width: 11; }
+    .ring-bg { stroke: #f0ebf8; }
+    .ring-value { stroke: var(--amber); stroke-linecap: round; transition: stroke-dashoffset .65s ease, stroke .3s; }
+    .ring-value.over { stroke: #ef4444; }
+    .ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .ring-number { font-size: 28px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+    .ring-caption { margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .calorie-stats { display: grid; gap: 8px; flex: 1; min-width: 140px; }
+    .calorie-stat { display: flex; align-items: center; gap: 9px; padding: 9px 10px; border-radius: 10px; background: var(--surface-soft); }
+    .stat-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--purple); }
+    .stat-dot.amber { background: var(--amber); } .stat-dot.gray { background: #9a94a7; }
+    .stat-label { color: var(--muted); font-size: 10px; }
+    .stat-value { margin-top: 2px; font-weight: 700; font-size: 13px; }
+    .calorie-foot { padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 10px; align-items: center; color: var(--muted); font-size: 11px; }
+    .text-button { padding: 0; color: var(--purple); background: transparent; border: 0; font-weight: 700; }
+    .macro-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+    .macro-card { min-height: 210px; padding: 17px 16px; display: flex; flex-direction: column; justify-content: space-between; }
+    .macro-head { display: flex; align-items: center; justify-content: space-between; }
+    .macro-tag { padding: 5px 8px; border-radius: 999px; font-size: 9px; font-weight: 800; letter-spacing: .04em; }
+    .macro-tag.protein { color: var(--purple); background: var(--purple-pale); }
+    .macro-tag.carb { color: #0369a1; background: var(--blue-pale); }
+    .macro-tag.fat { color: #be123c; background: var(--rose-pale); }
+    .macro-card .icon { color: var(--macro-color); }
+    .macro-amount { margin: 17px 0 4px; font-size: 23px; font-weight: 800; letter-spacing: -.7px; font-variant-numeric: tabular-nums; }
+    .macro-target { color: var(--muted); font-size: 12px; font-weight: 500; }
+    .macro-note { min-height: 18px; color: var(--muted); font-size: 11px; }
+    .progress-track { height: 8px; overflow: hidden; border-radius: 99px; background: #f0edf5; }
+    .progress-value { height: 100%; width: 0; border-radius: inherit; background: var(--macro-color); transition: width .6s ease; }
+    .macro-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 7px; color: var(--muted); font-size: 10px; }
+    .macro-foot strong { color: var(--macro-color); }
+    .dashboard-columns { display: grid; grid-template-columns: minmax(0, 8fr) minmax(285px, 4fr); gap: 16px; align-items: start; }
+    .meal-list, .side-stack { display: grid; gap: 14px; }
+    .meal-card { overflow: hidden; }
+    .meal-header { min-height: 75px; padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #f7f2ff; }
+    .meal-leading { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .meal-symbol { width: 42px; height: 42px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center; color: var(--purple); background: var(--purple-pale); }
+    .meal-name-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .meal-name { font-size: 16px; font-weight: 700; }
+    .meal-time { padding: 3px 7px; border-radius: 99px; color: var(--muted); background: white; font-size: 9px; font-weight: 700; }
+    .meal-subtotal { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+    .meal-actions { display: flex; align-items: center; gap: 6px; }
+    .meal-toggle { min-width: 42px; min-height: 42px; border: 0; border-radius: 50%; background: transparent; color: var(--muted); }
+    .meal-content { padding: 7px 15px 14px; }
+    .meal-content.collapsed { display: none; }
+    .food-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 5px; border-bottom: 1px solid #f3f0f7; }
+    .food-main { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+    .food-bullet { width: 8px; height: 8px; margin-top: 6px; flex: 0 0 auto; border-radius: 50%; background: var(--purple); }
+    .food-name { font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+    .food-portion { margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .food-values { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 5px; }
+    .chip { padding: 4px 7px; border-radius: 5px; font-size: 9px; font-weight: 700; white-space: nowrap; }
+    .chip.cal { color: #92400e; background: var(--amber-pale); }
+    .chip.pro { color: var(--purple); background: var(--purple-pale); }
+    .chip.carb { color: #0369a1; background: var(--blue-pale); }
+    .chip.fat { color: #be123c; background: var(--rose-pale); }
+    .row-actions { display: flex; align-items: center; gap: 3px; opacity: .25; transition: opacity .15s; }
+    .food-row:hover .row-actions, .row-actions:focus-within { opacity: 1; }
+    .row-actions button { width: 34px; height: 34px; border: 0; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: transparent; }
+    .row-actions button:hover { color: var(--purple); background: var(--purple-pale); }
+    .row-actions button.delete:hover { color: var(--danger); background: var(--danger-pale); }
+    .empty-state { padding: 24px 12px; text-align: center; color: var(--muted); }
+    .empty-state .icon { display: block; margin: 0 auto 8px; color: #9991a7; font-size: 27px; }
+    .empty-state strong { display: block; margin-bottom: 4px; color: var(--ink); font-size: 12px; }
+    .add-meal { width: 100%; margin-top: 10px; }
+    .water-summary { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; }
+    .water-big { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .water-small { color: var(--muted); font-size: 11px; }
+    .water-grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; margin-bottom: 13px; }
+    .water-cup { min-height: 58px; padding: 6px 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; color: #867e92; background: var(--surface-soft); }
+    .water-cup.filled { color: var(--purple); background: var(--purple-pale); }
+    .water-cup small { font-size: 9px; font-weight: 700; }
+    .water-meter { width: 54px; height: 54px; position: relative; flex: 0 0 auto; }
+    .water-meter svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .water-meter circle { fill: none; stroke-width: 5; }
+    .water-meter .track { stroke: #f0ebf8; }
+    .water-meter .value { stroke: var(--purple); stroke-linecap: round; transition: stroke-dashoffset .5s; }
+    .water-meter .icon { position: absolute; inset: 0; margin: auto; color: var(--purple); }
+    .shortcut-list { display: grid; gap: 7px; margin-top: 13px; }
+    .shortcut { width: 100%; min-height: 52px; padding: 9px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; text-align: left; border: 0; border-radius: 10px; color: var(--ink); background: var(--surface-soft); }
+    .shortcut:hover { background: var(--purple-pale); }
+    .shortcut b { display: block; font-size: 11px; }
+    .shortcut small { display: block; margin-top: 3px; color: var(--muted); font-size: 10px; }
+    .shortcut .icon { color: var(--purple); }
+    .tip-card { padding: 17px; border: 1px solid #e4d9fb; border-radius: var(--radius); background: linear-gradient(140deg,#efe8ff,#faf8ff); }
+    .tip-card p { margin: 7px 0 0; color: #59536a; font-size: 11px; line-height: 1.65; }
+    .disclaimer { margin: 22px 0 0; color: var(--muted); text-align: center; font-size: 10px; line-height: 1.6; }
+    .page-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; align-items: start; gap: 18px; }
+    .form-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+    .field { display: grid; gap: 6px; }
+    .field label { color: var(--ink); font-size: 12px; font-weight: 700; }
+    .field small, .help { color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .field input, .field select, .search-input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px; color: var(--ink); background: var(--surface-soft); }
+    .field input:focus, .field select:focus, .search-input:focus { border-color: var(--purple); outline: 3px solid rgba(108,43,217,.12); }
+    .form-section-title { margin: 0 0 14px; font-size: 15px; }
+    .form-divider { margin: 20px 0; border: 0; border-top: 1px solid var(--border); }
+    .manual-targets { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 10px; }
+    .notice { padding: 12px 14px; border-radius: 10px; color: #744400; background: #fff7df; font-size: 11px; line-height: 1.6; }
+    .notice.danger { color: #8c1d18; background: var(--danger-pale); }
+    .formula-box { display: grid; gap: 12px; }
+    .formula-line { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 12px; }
+    .formula-line strong { color: var(--ink); }
+    .food-tools { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .food-search-wrap { position: relative; flex: 1; max-width: 540px; }
+    .food-search-wrap .icon { position: absolute; top: 12px; left: 12px; color: var(--muted); }
+    .food-search-wrap input { padding-left: 42px; }
+    .food-catalog { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+    .catalog-item { padding: 15px; }
+    .catalog-item h3 { margin-bottom: 5px; font-size: 14px; }
+    .catalog-meta { color: var(--muted); font-size: 10px; }
+    .catalog-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 11px 0; }
+    .catalog-actions { display: flex; align-items: center; gap: 8px; }
+    .catalog-actions .button { flex: 1; }
+    .history-controls { display: flex; gap: 8px; }
+    .segmented { padding: 4px; display: inline-flex; gap: 3px; border-radius: 999px; background: var(--surface-tint); }
+    .segmented button { border: 0; border-radius: 999px; padding: 8px 14px; color: var(--muted); background: transparent; font-size: 11px; font-weight: 700; }
+    .segmented button.active { color: #fff; background: var(--purple); }
+    .history-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 16px; }
+    .history-stat { padding: 16px; }
+    .history-stat span { display: block; color: var(--muted); font-size: 10px; }
+    .history-stat strong { display: block; margin-top: 6px; font-size: 20px; font-variant-numeric: tabular-nums; }
+    .chart-card { margin-bottom: 16px; }
+    .chart { min-height: 205px; padding: 22px 10px 0; display: flex; align-items: stretch; justify-content: space-around; gap: 8px; border-bottom: 1px solid var(--border); }
+    .chart-day { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 7px; }
+    .chart-bar-wrap { width: min(32px,75%); height: 145px; display: flex; align-items: flex-end; }
+    .chart-bar { width: 100%; min-height: 3px; border-radius: 7px 7px 2px 2px; background: linear-gradient(180deg,#a78bfa,#6c2bd9); }
+    .chart-value { color: var(--muted); font-size: 9px; text-align: center; }
+    .chart-label { padding-bottom: 9px; color: var(--muted); font-size: 9px; }
+    .history-row { display: grid; grid-template-columns: 1.2fr 1fr 1.3fr; gap: 10px; align-items: center; padding: 13px 0; border-bottom: 1px solid var(--border); }
+    .history-row:last-child { border-bottom: 0; }
+    .history-date { font-size: 11px; font-weight: 700; }
+    .history-kcal { font-size: 11px; font-weight: 700; }
+    .history-kcal small { color: var(--muted); font-weight: 500; }
+    .history-macros { color: var(--muted); font-size: 10px; text-align: right; }
+    .mobile-nav { display: none; }
+    .footer { padding: 25px 20px 84px; text-align: center; color: var(--muted); font-size: 10px; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 30; padding: 20px; display: grid; place-items: center; background: rgba(30,27,46,.48); backdrop-filter: blur(4px); }
+    .modal { width: min(100%,540px); max-height: min(92vh,760px); overflow: auto; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); box-shadow: var(--shadow-raised); }
+    .modal-header { padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; background: var(--surface-soft); }
+    .modal-header h2 { margin: 0; font-size: 17px; }
+    .modal-body { padding: 20px; display: grid; gap: 15px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; }
+    .suggestions { max-height: 180px; overflow: auto; margin-top: 5px; border: 1px solid var(--border); border-radius: 9px; background: white; }
+    .suggestion { width: 100%; padding: 10px 12px; display: flex; justify-content: space-between; gap: 12px; border: 0; border-bottom: 1px solid var(--border); color: var(--ink); text-align: left; background: white; font-size: 11px; }
+    .suggestion:last-child { border-bottom: 0; }
+    .suggestion:hover { background: var(--surface-soft); }
+    .suggestion small { color: var(--muted); }
+    .nutrition-preview { padding: 11px; border-radius: 9px; background: var(--surface-soft); }
+    .nutrition-preview strong { font-size: 13px; }
+    .preview-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+    .toast { position: fixed; z-index: 40; right: 20px; bottom: 20px; max-width: min(400px,calc(100vw - 32px)); padding: 13px 17px; border-radius: 12px; color: white; background: #302b3e; box-shadow: var(--shadow-raised); opacity: 0; transform: translateY(14px); pointer-events: none; transition: opacity .22s,transform .22s; font-size: 12px; }
+    .toast.visible { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1000px) {
+      .topbar-inner { gap: 12px; padding: 0 18px; }
+      .nav button { padding: 9px 10px; }
+      .top-date { display: none; }
+      .dashboard-top { grid-template-columns: 1fr; }
+      .calorie-body { justify-content: center; gap: 34px; }
+      .macro-card { min-height: 190px; }
+      .dashboard-columns { grid-template-columns: minmax(0, 1.6fr) minmax(265px, 1fr); }
+    }
+    @media (max-width: 760px) {
+      body { padding-bottom: 67px; }
+      .topbar-inner { height: 60px; padding: 0 15px; }
+      .brand { font-size: 18px; }
+      .brand-mark { width: 30px; height: 30px; }
+      .nav { display: none; }
+      .container { padding: 21px 14px 30px; }
+      .page-heading { align-items: flex-start; flex-direction: column; }
+      .datebar { flex-wrap: wrap; padding: 11px; }
+      .date-controls { width: 100%; justify-content: space-between; }
+      .date-label { min-width: 0; font-size: 12px; }
+      .datebar > .button { width: 100%; }
+      .calorie-card { padding: 17px; }
+      .calorie-body { gap: 14px; }
+      .ring-wrap { width: 145px; height: 145px; }
+      .ring-number { font-size: 24px; }
+      .calorie-stats { min-width: 0; }
+      .calorie-stat { padding: 8px 7px; }
+      .stat-value { font-size: 11px; }
+      .macro-grid { grid-template-columns: 1fr; gap: 10px; }
+      .macro-card { min-height: auto; gap: 14px; padding: 15px; }
+      .macro-amount { margin-top: 10px; }
+      .dashboard-columns, .page-grid { grid-template-columns: 1fr; }
+      .side-stack { grid-row: 1; }
+      .meal-header { padding: 11px; }
+      .meal-symbol { width: 38px; height: 38px; }
+      .meal-name { font-size: 14px; }
+      .meal-content { padding: 5px 10px 12px; }
+      .food-row { align-items: flex-start; flex-direction: column; gap: 7px; }
+      .food-values { justify-content: flex-start; padding-left: 18px; }
+      .row-actions { opacity: 1; }
+      .food-row { position: relative; padding-right: 42px; }
+      .row-actions { position: absolute; top: 8px; right: 0; }
+      .water-grid { grid-template-columns: repeat(5,minmax(0,1fr)); }
+      .manual-targets { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .form-grid { gap: 12px; }
+      .food-catalog { grid-template-columns: 1fr; }
+      .food-tools { align-items: stretch; flex-direction: column; }
+      .food-search-wrap { max-width: none; }
+      .history-stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .history-row { grid-template-columns: 1fr auto; }
+      .history-macros { grid-column: 1 / -1; text-align: left; }
+      .mobile-nav { position: fixed; z-index: 20; right: 0; bottom: 0; left: 0; display: grid; grid-template-columns: repeat(4,1fr); padding: 6px 5px max(6px,env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
+      .mobile-nav button { min-height: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border: 0; border-radius: 10px; color: var(--muted); background: transparent; font-size: 9px; font-weight: 700; }
+      .mobile-nav button.active { color: var(--purple); background: var(--purple-pale); }
+      .mobile-nav .icon { font-size: 20px; }
+      .footer { padding-bottom: 20px; }
+      .modal-backdrop { padding: 10px; align-items: end; }
+      .modal { max-height: 88vh; border-radius: 20px 20px 14px 14px; }
+    }
+    @media (max-width: 390px) {
+      .calorie-body { gap: 9px; }
+      .ring-wrap { width: 128px; height: 128px; }
+      .ring-number { font-size: 21px; }
+      .ring-caption { font-size: 9px; }
+      .calorie-stat { gap: 6px; }
+      .date-label { font-size: 11px; }
+      .meal-actions .button { padding: 7px 9px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="#" aria-label="NutriMacro, beranda" data-page-link="dashboard">
+        <span class="brand-mark"><span class="icon" aria-hidden="true">nutrition</span></span>NutriMacro
+      </a>
+      <nav class="nav" aria-label="Navigasi utama" id="desktop-nav"></nav>
+      <div class="top-date" id="top-date"></div>
+    </div>
+  </header>
+  <main class="container" id="app" tabindex="-1"></main>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Navigasi utama"></nav>
+  <footer class="footer">NutriMacro adalah alat bantu informasi dan bukan pengganti saran medis.</footer>
+  <div id="modal-root"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script>
+    (() => {
+      "use strict";
+      const STORAGE_KEY = "nutrimacro-app-v1";
+      const MEALS = [
+        { id: "sarapan", name: "Sarapan", time: "07:30", icon: "wb_twilight" },
+        { id: "siang", name: "Makan Siang", time: "12:30", icon: "wb_sunny" },
+        { id: "malam", name: "Makan Malam", time: "19:00", icon: "dark_mode" },
+        { id: "camilan", name: "Camilan & Ekstra", time: "Sesuai waktu", icon: "nutrition" }
+      ];
+      const PAGES = [
+        { id: "dashboard", label: "Kalkulator Harian", short: "Hari Ini", icon: "dashboard" },
+        { id: "history", label: "Riwayat Nutrisi", short: "Riwayat", icon: "query_stats" },
+        { id: "goals", label: "Target & Goal", short: "Target", icon: "flag" },
+        { id: "foods", label: "Database Makanan", short: "Makanan", icon: "restaurant" }
+      ];
+      const SEED_FOODS = [
+        { id:"nasi-putih", name:"Nasi putih matang", kcal:130, p:2.7, c:28.2, f:.3, serving:"1 centong (100 g)", source:"Referensi umum", favorite:true },
+        { id:"nasi-merah", name:"Nasi merah matang", kcal:123, p:2.7, c:25.6, f:1, serving:"1 piring sedang (150 g)", source:"Referensi umum", favorite:false },
+        { id:"ayam-panggang", name:"Dada ayam panggang", kcal:165, p:31, c:0, f:3.6, serving:"1 potong (150 g)", source:"Referensi umum", favorite:true },
+        { id:"telur-rebus", name:"Telur rebus", kcal:155, p:13, c:1.1, f:11, serving:"1 butir (50 g)", source:"Referensi umum", favorite:true },
+        { id:"telur-ceplok", name:"Telur ceplok", kcal:196, p:13, c:.8, f:15, serving:"1 butir (55 g)", source:"Referensi umum", favorite:true },
+        { id:"tempe-goreng", name:"Tempe goreng", kcal:220, p:18, c:8, f:13, serving:"2 potong (50 g)", source:"Referensi umum", favorite:true },
+        { id:"tempe", name:"Tempe", kcal:193, p:20, c:8, f:11, serving:"2 potong (50 g)", source:"Referensi umum", favorite:false },
+        { id:"tahu-putih", name:"Tahu putih", kcal:78, p:8, c:2, f:4.8, serving:"1 potong (100 g)", source:"Referensi umum", favorite:true },
+        { id:"pisang", name:"Pisang", kcal:89, p:1.1, c:22.8, f:.3, serving:"1 buah sedang (120 g)", source:"Referensi umum", favorite:true },
+        { id:"oatmeal", name:"Oatmeal matang", kcal:70, p:2.5, c:12, f:1.5, serving:"1 mangkuk (250 g)", source:"Referensi umum", favorite:false },
+        { id:"alpukat", name:"Alpukat", kcal:160, p:2, c:8.5, f:14.7, serving:"1/2 buah (100 g)", source:"Referensi umum", favorite:false },
+        { id:"susu-kedelai", name:"Susu kedelai tanpa gula", kcal:33, p:3.3, c:1.5, f:1.8, serving:"1 gelas (200 ml)", source:"Referensi umum", favorite:false },
+        { id:"ubi", name:"Ubi jalar kukus", kcal:86, p:1.6, c:20.1, f:.1, serving:"1 buah sedang (130 g)", source:"Referensi umum", favorite:false },
+        { id:"salmon", name:"Ikan salmon panggang", kcal:208, p:20.4, c:0, f:13.4, serving:"1 fillet (120 g)", source:"Referensi umum", favorite:false },
+        { id:"brokoli", name:"Brokoli kukus", kcal:35, p:2.4, c:7.2, f:.4, serving:"1 mangkuk (150 g)", source:"Referensi umum", favorite:false },
+        { id:"yogurt", name:"Yogurt plain", kcal:61, p:3.5, c:4.7, f:3.3, serving:"1 cup (170 g)", source:"Referensi umum", favorite:false },
+        { id:"apel", name:"Apel", kcal:52, p:.3, c:13.8, f:.2, serving:"1 buah sedang (180 g)", source:"Referensi umum", favorite:false },
+        { id:"kacang", name:"Kacang tanah sangrai", kcal:585, p:24, c:21, f:49, serving:"1 genggam (30 g)", source:"Referensi umum", favorite:false }
+      ];
+      function localDateString(date = new Date()) {
+        return [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0"), String(date.getDate()).padStart(2,"0")].join("-");
+      }
+      function foodById(id) { return state.foods.find(food => food.id === id); }
+      function scaledNutrition(food, grams) {
+        const scale = Number(grams) / 100;
+        return { kcal: Math.round(food.kcal * scale), p: round(food.p * scale), c: round(food.c * scale), f: round(food.f * scale) };
+      }
+      function editDistanceAtMostOne(a, b) {
+        if (Math.abs(a.length - b.length) > 1) return false;
+        let left = 0, right = 0, edits = 0;
+        while (left < a.length && right < b.length) {
+          if (a[left] === b[right]) { left++; right++; continue; }
+          if (++edits > 1) return false;
+          if (a.length > b.length) left++;
+          else if (b.length > a.length) right++;
+          else { left++; right++; }
+        }
+        return edits + (left < a.length || right < b.length ? 1 : 0) <= 1;
+      }
+      function matchesFood(food, query) {
+        const name = food.name.toLocaleLowerCase("id");
+        if (name.includes(query)) return true;
+        const words = name.split(/\s+/);
+        return query.split(/\s+/).every(token => words.some(word =>
+          editDistanceAtMostOne(token, word.slice(0, token.length))
+        ));
+      }
+      function round(value) { return Math.round((Number(value) + Number.EPSILON) * 10) / 10; }
+      function formatNumber(value, digits = 0) {
+        return Number(value || 0).toLocaleString("id-ID", { maximumFractionDigits: digits, minimumFractionDigits: 0 });
+      }
+      function formatDate(dateString, options = { weekday:"long", day:"numeric", month:"long", year:"numeric" }) {
+        return new Date(dateString + "T12:00:00").toLocaleDateString("id-ID", options);
+      }
+      function esc(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" })[char]);
+      }
+      function makeEntry(food, grams) {
+        const nutrition = scaledNutrition(food, grams);
+        return { id: cryptoId(), foodId: food.id, name: food.name, grams: Number(grams), ...nutrition, createdAt: new Date().toISOString() };
+      }
+      function cryptoId() {
+        return (globalThis.crypto && crypto.randomUUID) ? crypto.randomUUID() : `e${Date.now()}${Math.random().toString(16).slice(2)}`;
+      }
+      function seedState() {
+        const date = localDateString();
+        const foods = SEED_FOODS.map(food => ({...food}));
+        const get = id => foods.find(food => food.id === id);
+        const seedItem = (meal, foodId, grams) => ({ meal, ...makeEntry(get(foodId), grams) });
+        const entries = [
+          seedItem("sarapan","oatmeal",250), seedItem("sarapan","telur-rebus",100), seedItem("sarapan","susu-kedelai",200),
+          seedItem("siang","ayam-panggang",150), seedItem("siang","nasi-merah",150), seedItem("siang","brokoli",150), seedItem("siang","alpukat",60),
+          seedItem("malam","salmon",120), seedItem("malam","ubi",130), seedItem("malam","brokoli",100)
+        ];
+        return {
+          page:"dashboard", selectedDate:date, historyDays:7, currentMeal:"siang", collapsed:{},
+          profile:{ sex:"pria", age:40, height:170, weight:88, activity:1.2, goal:"maintain", intensity:"light" },
+          targets:{ kcal:2100, p:140, c:230, f:65, water:2500 },
+          foods, logs:{ [date]:entries }, water:{ [date]:1750 }
+        };
+      }
+      function readState() {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (!saved) return seedState();
+          const parsed = JSON.parse(saved);
+          const defaults = seedState();
+          return {
+            ...defaults, ...parsed,
+            profile:{...defaults.profile,...parsed.profile},
+            targets:{...defaults.targets,...parsed.targets},
+            foods:Array.isArray(parsed.foods) ? parsed.foods : defaults.foods,
+            logs:parsed.logs && typeof parsed.logs === "object" ? parsed.logs : {},
+            water:parsed.water && typeof parsed.water === "object" ? parsed.water : {},
+            collapsed:{}, page:"dashboard"
+          };
+        } catch (error) {
+          console.error("Tidak dapat membaca data NutriMacro.", error);
+          return seedState();
+        }
+      }
+      let state = readState();
+      let modalState = null;
+      let toastTimer = null;
+      let searchTimer = null;
+      const app = document.getElementById("app");
+      const modalRoot = document.getElementById("modal-root");
+      const toast = document.getElementById("toast");
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          return true;
+        } catch (error) {
+          console.error("Gagal menyimpan data NutriMacro.", error);
+          showToast("Data tidak dapat disimpan. Periksa ruang penyimpanan browser.");
+          return false;
+        }
+      }
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("visible");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("visible"), 2600);
+      }
+      function dayEntries(date = state.selectedDate) { return Array.isArray(state.logs[date]) ? state.logs[date] : []; }
+      function totals(entries) {
+        return entries.reduce((sum, entry) => {
+          sum.kcal += Number(entry.kcal) || 0; sum.p += Number(entry.p) || 0;
+          sum.c += Number(entry.c) || 0; sum.f += Number(entry.f) || 0;
+          return sum;
+        }, { kcal:0, p:0, c:0, f:0 });
+      }
+      function mealTotals(meal) { return totals(dayEntries().filter(entry => entry.meal === meal)); }
+      function icon(name, extra = "") { return `<span class="icon ${extra}" aria-hidden="true">${name}</span>`; }
+      function navMarkup(mobile = false) {
+        return PAGES.map(page => `<button type="button" data-page="${page.id}" class="${state.page === page.id ? "active" : ""}" aria-current="${state.page === page.id ? "page" : "false"}">${mobile ? `${icon(page.icon)}<span>${page.short}</span>` : page.label}</button>`).join("");
+      }
+      function renderShell() {
+        document.getElementById("desktop-nav").innerHTML = navMarkup();
+        document.getElementById("mobile-nav").innerHTML = navMarkup(true);
+        document.getElementById("top-date").textContent = formatDate(localDateString(), { day:"numeric", month:"short", year:"numeric" });
+      }
+      function render() {
+        renderShell();
+        if (state.page === "goals") renderGoals();
+        else if (state.page === "foods") renderFoods();
+        else if (state.page === "history") renderHistory();
+        else renderDashboard();
+      }
+      function renderDashboard() {
+        const day = totals(dayEntries());
+        const t = state.targets;
+        const pct = t.kcal > 0 ? day.kcal / t.kcal * 100 : 0;
+        const over = day.kcal > t.kcal;
+        const remaining = Math.max(0, t.kcal - day.kcal);
+        app.innerHTML = `
+          <section class="datebar card" aria-label="Pilih tanggal pencatatan">
+            <div class="date-controls">
+              <button class="date-arrow" type="button" data-action="date-shift" data-days="-1" aria-label="Hari sebelumnya">${icon("chevron_left")}</button>
+              <div class="date-label">${formatDate(state.selectedDate)}<small>${state.selectedDate === localDateString() ? "CATATAN HARI INI" : "CATATAN TANGGAL TERPILIH"}</small></div>
+              <button class="date-arrow" type="button" data-action="date-shift" data-days="1" aria-label="Hari berikutnya">${icon("chevron_right")}</button>
+            </div>
+            <button class="button button-primary" type="button" data-action="open-log">${icon("add_circle")} Catat Makanan Cepat</button>
+          </section>
+          <section class="dashboard-top" aria-label="Ringkasan nutrisi harian">
+            <article class="calorie-card card">
+              <div class="card-title-row">
+                <div class="title-with-icon">${icon("local_fire_department")}<h2 class="section-title">Kalori Harian</h2></div>
+                <span class="balance ${over ? "over" : ""}" id="calorie-balance">${over ? `${formatNumber(day.kcal-t.kcal)} kcal Lebih` : `${formatNumber(remaining)} kcal Tersisa`}</span>
+              </div>
+              <div class="calorie-body">
+                <div class="ring-wrap" role="img" aria-label="${formatNumber(day.kcal)} dari ${formatNumber(t.kcal)} kilokalori, ${formatNumber(pct,1)} persen">
+                  <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-bg" cx="60" cy="60" r="50"></circle><circle class="ring-value ${over ? "over" : ""}" cx="60" cy="60" r="50" stroke-dasharray="314.16" stroke-dashoffset="${(314.16-(Math.min(pct,100)/100*314.16)).toFixed(2)}"></circle></svg>
+                  <div class="ring-center"><span class="ring-number">${formatNumber(day.kcal)}</span><span class="ring-caption">dari ${formatNumber(t.kcal)} kcal</span></div>
+                </div>
+                <div class="calorie-stats">
+                  <div class="calorie-stat"><i class="stat-dot amber"></i><div><div class="stat-label">Sudah masuk</div><div class="stat-value">${formatNumber(day.kcal)} kcal</div></div></div>
+                  <div class="calorie-stat"><i class="stat-dot gray"></i><div><div class="stat-label">Target harian</div><div class="stat-value">${formatNumber(t.kcal)} kcal</div></div></div>
+                  <div class="calorie-stat"><i class="stat-dot"></i><div><div class="stat-label">Pencapaian</div><div class="stat-value">${formatNumber(pct,1)}% target</div></div></div>
+                </div>
+              </div>
+              <div class="calorie-foot"><span>${icon("auto_graph")} Target ${goalLabel(state.profile.goal)}</span><button class="text-button" type="button" data-page="goals">Ubah Target</button></div>
+            </article>
+            <div class="macro-grid">${macroCard("protein","PROTEIN",day.p,t.p,"fitness_center",4)}${macroCard("carb","KARBOHIDRAT",day.c,t.c,"bolt",4)}${macroCard("fat","LEMAK",day.f,t.f,"opacity",9)}</div>
+          </section>
+          <section class="dashboard-columns">
+            <div class="meal-list">${MEALS.map(renderMeal).join("")}</div>
+            <aside class="side-stack">
+              ${renderWater()}
+              ${renderShortcuts()}
+              ${renderTip(day)}
+            </aside>
+          </section>
+          <p class="disclaimer">NutriMacro adalah alat bantu informasi dan bukan pengganti saran medis. Estimasi kebutuhan setiap orang berbeda; konsultasikan dengan tenaga kesehatan untuk saran personal.</p>`;
+      }
+      function goalLabel(goal) {
+        return ({lose:"Turun berat badan", maintain:"Pertahankan berat badan", gain:"Naik massa otot"})[goal] || "Tujuan pribadi";
+      }
+      function macroCard(kind,label,consumed,target,iconName,calPerGram) {
+        const percent = target > 0 ? consumed / target * 100 : 0;
+        const remaining = Math.max(0, target - consumed);
+        const color = kind === "protein" ? "var(--purple)" : kind === "carb" ? "var(--blue)" : "var(--rose)";
+        return `<article class="macro-card card" style="--macro-color:${color}">
+          <div><div class="macro-head"><span class="macro-tag ${kind}">${label}</span>${icon(iconName)}</div>
+          <div class="macro-amount">${formatNumber(consumed,1)}<span class="macro-target"> / ${formatNumber(target,1)} g</span></div>
+          <div class="macro-note">${formatNumber(remaining,1)} g tersisa</div></div>
+          <div><div class="progress-track" role="progressbar" aria-label="Progress ${label.toLowerCase()}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(Math.min(percent,100))}"><div class="progress-value" style="width:${Math.min(percent,100)}%"></div></div>
+          <div class="macro-foot"><span>${formatNumber(percent,0)}% tercapai</span><strong>${formatNumber(consumed*calPerGram)} kcal</strong></div></div>
+        </article>`;
+      }
+      function renderMeal(meal) {
+        const entries = dayEntries().filter(entry => entry.meal === meal.id);
+        const sum = totals(entries);
+        const collapsed = !!state.collapsed[meal.id];
+        const rows = entries.length ? entries.map(entry => `
+          <div class="food-row">
+            <div class="food-main"><i class="food-bullet"></i><div><div class="food-name">${esc(entry.name)}</div><div class="food-portion">${formatNumber(entry.grams,1)} g</div></div></div>
+            <div class="food-values"><span class="chip cal">${formatNumber(entry.kcal)} kcal</span><span class="chip pro">P ${formatNumber(entry.p,1)}g</span><span class="chip carb">K ${formatNumber(entry.c,1)}g</span><span class="chip fat">L ${formatNumber(entry.f,1)}g</span>
+              <span class="row-actions"><button type="button" data-action="edit-entry" data-entry="${esc(entry.id)}" aria-label="Ubah ${esc(entry.name)}">${icon("edit")}</button><button class="delete" type="button" data-action="delete-entry" data-entry="${esc(entry.id)}" aria-label="Hapus ${esc(entry.name)}">${icon("delete")}</button></span>
+            </div>
+          </div>`).join("") : `<div class="empty-state">${icon("restaurant")}<strong>Belum ada makanan dicatat</strong><span>Tambahkan makanan untuk melihat ringkasan di sini.</span></div>`;
+        return `<article class="meal-card card">
+          <header class="meal-header">
+            <div class="meal-leading"><div class="meal-symbol">${icon(meal.icon)}</div><div><div class="meal-name-line"><span class="meal-name">${meal.name}</span><span class="meal-time">${meal.time}</span></div><p class="meal-subtotal">${formatNumber(sum.kcal)} kcal · P ${formatNumber(sum.p,1)}g · K ${formatNumber(sum.c,1)}g · L ${formatNumber(sum.f,1)}g</p></div></div>
+            <div class="meal-actions"><button type="button" class="button button-soft button-small" data-action="open-log" data-meal="${meal.id}">${icon("add")} Tambah</button><button type="button" class="meal-toggle" data-action="toggle-meal" data-meal="${meal.id}" aria-label="${collapsed ? "Buka" : "Lipat"} ${meal.name}">${icon(collapsed ? "expand_more" : "expand_less")}</button></div>
+          </header>
+          <div class="meal-content ${collapsed ? "collapsed" : ""}">${rows}<button class="button button-soft add-meal" type="button" data-action="open-log" data-meal="${meal.id}">${icon("add_circle")} Tambah makanan ${meal.name}</button></div>
+        </article>`;
+      }
+      function renderWater() {
+        const target = Math.max(250, Number(state.targets.water) || 2500);
+        const amount = Math.max(0, Number(state.water[state.selectedDate]) || 0);
+        const glasses = Math.ceil(target / 250);
+        const count = Math.ceil(amount / 250);
+        const percent = amount / target * 100;
+        const circumference = 138.23;
+        let grid = "";
+        for (let i=0; i<glasses; i++) {
+          const filled = i < count;
+          grid += `<button type="button" class="water-cup ${filled ? "filled" : ""}" data-action="water-glass" data-index="${i}" aria-label="${filled ? "Kurangi" : "Catat"} gelas ke-${i+1}, target ${formatNumber((i+1)*250)} mililiter">${icon(filled ? "water_full" : "water_drop")}<small>${formatNumber((i+1)*250)}ml</small></button>`;
+        }
+        return `<article class="card card-pad">
+          <div class="card-title-row"><div class="title-with-icon">${icon("water_drop")}<h2 class="section-title">Hidrasi</h2></div><span class="macro-tag protein">${formatNumber(target/1000,1)} L</span></div>
+          <div class="water-summary"><div><div class="water-big">${formatNumber(amount/1000,2)} <span class="water-small">/ ${formatNumber(target/1000,1)} L</span></div><div class="water-small">${formatNumber(count)} dari ${glasses} gelas · ${formatNumber(percent,0)}%</div></div><div class="water-meter"><svg viewBox="0 0 54 54" aria-hidden="true"><circle class="track" cx="27" cy="27" r="22"></circle><circle class="value" cx="27" cy="27" r="22" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference-(Math.min(percent,100)/100*circumference)}"></circle></svg>${icon("local_drink")}</div></div>
+          <div class="water-grid">${grid}</div><button type="button" class="button button-purple" style="width:100%" data-action="add-water">${icon("local_drink")} +1 Gelas Air (250 ml)</button>
+        </article>`;
+      }
+      function renderShortcuts() {
+        const favorites = state.foods.filter(food => food.favorite).slice(0,5);
+        return `<article class="card card-pad"><div class="card-title-row"><h2 class="section-title">Pintasan Cepat</h2><span class="macro-tag" style="color:#9a6300;background:var(--amber-pale)">FAVORIT</span></div><p class="subheading" style="font-size:11px;margin:5px 0 0">Tambah makanan favorit ke waktu makan pilihan.</p><div class="shortcut-list">${favorites.length ? favorites.map(food => `<button class="shortcut" type="button" data-action="quick-favorite" data-food="${esc(food.id)}"><span><b>${esc(food.name)}</b><small>${formatNumber(food.kcal)} kcal / 100 g · ${esc(food.serving)}</small></span>${icon("add_circle")}</button>`).join("") : `<div class="empty-state">Tandai makanan sebagai favorit di database.</div>`}</div><button class="text-button" type="button" style="margin-top:12px" data-page="foods">Lihat semua makanan →</button></article>`;
+      }
+      function renderTip(day) {
+        const left = Math.max(0, state.targets.p - day.p);
+        let message = left > 0
+          ? `Sekitar ${formatNumber(left,1)} g protein masih dapat melengkapi target harian. Pilih sumber protein yang sesuai selera dan kebutuhan Anda.`
+          : "Target protein harian tercapai. Teruskan kebiasaan mencatat dengan santai dan konsisten.";
+        if (day.kcal > state.targets.kcal) message += " Asupan hari ini melewati target; gunakan angka ini sebagai informasi, bukan penilaian.";
+        return `<article class="tip-card"><div class="title-with-icon">${icon("auto_awesome")}<h3 style="font-size:13px">Catatan nutrisi</h3></div><p>${message}</p></article>`;
+      }
+      function renderGoals() {
+        const p = state.profile;
+        const t = state.targets;
+        const calculated = calculateTargets(p);
+        const safeFloor = p.sex === "wanita" ? 1200 : 1500;
+        const below = Number(t.kcal) < safeFloor;
+        app.innerHTML = `<div class="page-heading"><div><p class="eyebrow">Personalisasi</p><h1>Target &amp; Goal</h1><p class="subheading">Atur profil dan sasaran harian. Semua perubahan tersimpan di perangkat ini.</p></div><button class="button button-soft" type="button" data-action="reset-profile">${icon("restart_alt")} Isi contoh profil</button></div>
+          <div class="page-grid">
+            <form class="card card-pad" id="goal-form">
+              <h2 class="form-section-title">Profil Anda</h2>
+              <div class="form-grid">
+                <div class="field"><label for="sex">Jenis kelamin untuk rumus BMR</label><select id="sex" name="sex"><option value="pria" ${p.sex==="pria"?"selected":""}>Pria</option><option value="wanita" ${p.sex==="wanita"?"selected":""}>Wanita</option></select></div>
+                <div class="field"><label for="age">Usia (tahun)</label><input id="age" name="age" type="number" min="18" max="100" value="${esc(p.age)}" required></div>
+                <div class="field"><label for="height">Tinggi badan (cm)</label><input id="height" name="height" type="number" min="120" max="230" step="0.1" value="${esc(p.height)}" required></div>
+                <div class="field"><label for="weight">Berat badan (kg)</label><input id="weight" name="weight" type="number" min="30" max="300" step="0.1" value="${esc(p.weight)}" required></div>
+                <div class="field"><label for="activity">Tingkat aktivitas</label><select id="activity" name="activity">
+                  ${[[1.2,"Sedentari — jarang olahraga"],[1.375,"Ringan — 1–3× per minggu"],[1.55,"Sedang — 3–5× per minggu"],[1.725,"Berat — 6–7× per minggu"],[1.9,"Sangat berat — aktivitas fisik intens"]].map(([factor,label])=>`<option value="${factor}" ${Number(p.activity)===factor?"selected":""}>${label}</option>`).join("")}</select></div>
+                <div class="field"><label for="goal">Tujuan</label><select id="goal" name="goal">
+                  <option value="lose" ${p.goal==="lose"?"selected":""}>Turun berat badan</option><option value="maintain" ${p.goal==="maintain"?"selected":""}>Pertahankan berat badan</option><option value="gain" ${p.goal==="gain"?"selected":""}>Naik massa otot</option></select></div>
+                <div class="field"><label for="intensity">Intensitas perubahan</label><select id="intensity" name="intensity"><option value="light" ${p.intensity==="light"?"selected":""}>Ringan</option><option value="moderate" ${p.intensity==="moderate"?"selected":""}>Sedang</option></select></div>
+              </div>
+              <div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="button button-purple" type="submit">${icon("calculate")} Hitung target</button></div>
+              <hr class="form-divider">
+              <h2 class="form-section-title">Target harian (dapat diubah manual)</h2>
+              <div class="manual-targets">
+                <div class="field"><label for="target-kcal">Kalori (kcal)</label><input id="target-kcal" name="kcal" type="number" min="500" max="10000" value="${esc(t.kcal)}" required></div>
+                <div class="field"><label for="target-p">Protein (g)</label><input id="target-p" name="p" type="number" min="1" max="1000" step="0.1" value="${esc(t.p)}" required></div>
+                <div class="field"><label for="target-c">Karbo (g)</label><input id="target-c" name="c" type="number" min="1" max="1500" step="0.1" value="${esc(t.c)}" required></div>
+                <div class="field"><label for="target-f">Lemak (g)</label><input id="target-f" name="f" type="number" min="1" max="1000" step="0.1" value="${esc(t.f)}" required></div>
+              </div>
+              <div class="field" style="margin-top:13px;max-width:220px"><label for="target-water">Target air (ml)</label><input id="target-water" name="water" type="number" min="250" max="10000" step="250" value="${esc(t.water)}" required></div>
+              <div id="safe-warning" class="notice danger" style="margin-top:14px;${below?"":"display:none"}">Target kalori berada di bawah batas acuan ${formatNumber(safeFloor)} kcal untuk profil ini. Pertimbangkan berkonsultasi dengan tenaga kesehatan.</div>
+              <div style="display:flex;justify-content:flex-end;margin-top:16px"><button class="button button-primary" type="button" data-action="save-targets">${icon("save")} Simpan target</button></div>
+            </form>
+            <aside class="side-stack">
+              <article class="card card-pad"><h2 class="form-section-title">Estimasi berdasarkan profil</h2><div class="formula-box">
+                <div class="formula-line"><span>BMR</span><strong>${formatNumber(calculated.bmr)} kcal</strong></div>
+                <div class="formula-line"><span>Estimasi kebutuhan (TDEE)</span><strong>${formatNumber(calculated.tdee)} kcal</strong></div>
+                <div class="formula-line"><span>Kalori tujuan</span><strong>${formatNumber(calculated.kcal)} kcal</strong></div>
+                <div class="formula-line"><span>Protein / Karbo / Lemak</span><strong>${formatNumber(calculated.p)} / ${formatNumber(calculated.c)} / ${formatNumber(calculated.f)} g</strong></div>
+              </div><p class="help" style="margin:15px 0 0">Estimasi memakai rumus Mifflin–St Jeor dan faktor aktivitas. Nilai dapat berbeda dari kebutuhan aktual.</p></article>
+              <div class="notice">Target di bawah ${formatNumber(safeFloor)} kcal memerlukan perhatian. Pengguna di bawah 18 tahun, hamil/menyusui, atau memiliki kondisi medis sebaiknya meminta saran ahli gizi/dokter sebelum mengikuti target otomatis.</div>
+              <article class="card card-pad"><h3 class="form-section-title">Cara hitung</h3><p class="help">BMR memakai Mifflin–St Jeor. Protein diestimasi dari berat badan; lemak sekitar 28% target kalori; karbohidrat mengisi sisa energi. Konversi: protein 4, karbo 4, lemak 9 kcal/g.</p></article>
+            </aside>
+          </div>`;
+      }
+      function calculateTargets(profile) {
+        const weight=Number(profile.weight), height=Number(profile.height), age=Number(profile.age);
+        const bmr=10*weight+6.25*height-5*age+(profile.sex==="pria"?5:-161);
+        const tdee=bmr*Number(profile.activity);
+        const adjustment=profile.goal==="lose" ? (profile.intensity==="moderate" ? -.2 : -.1) : profile.goal==="gain" ? (profile.intensity==="moderate" ? .1 : .05) : 0;
+        const kcal=Math.max(profile.sex==="wanita"?1200:1500,Math.round(tdee*(1+adjustment)));
+        const protein=Math.round(weight*(profile.goal==="maintain"?1.5:1.8));
+        const fat=Math.round(kcal*.28/9);
+        const carb=Math.max(0,Math.round((kcal-protein*4-fat*9)/4));
+        return { bmr, tdee, kcal, p:protein, c:carb, f:fat };
+      }
+      function renderFoods(query = "") {
+        const normalized=query.trim().toLocaleLowerCase("id");
+        const foods=[...state.foods].sort((a,b)=>Number(b.favorite)-Number(a.favorite)).filter(food=>!normalized || matchesFood(food,normalized));
+        app.innerHTML=`<div class="page-heading"><div><p class="eyebrow">Referensi pangan</p><h1>Database Makanan</h1><p class="subheading">Cari makanan Indonesia, cek estimasi nutrisi per 100 g, dan simpan makanan favorit Anda.</p></div><button class="button button-primary" type="button" data-action="toggle-custom-food">${icon("add")} Tambah makanan</button></div>
+          <section id="custom-food-panel" class="card card-pad" style="display:none;margin-bottom:16px">
+            <h2 class="form-section-title">Buat makanan kustom</h2>
+            <form id="custom-food-form"><div class="form-grid">
+              <div class="field"><label for="custom-name">Nama makanan</label><input id="custom-name" name="name" maxlength="80" required placeholder="Contoh: Tempe orek buatan rumah"></div>
+              <div class="field"><label for="custom-kcal">Kalori per 100 g</label><input id="custom-kcal" name="kcal" type="number" min="0" max="2000" step="0.1" required></div>
+              <div class="field"><label for="custom-p">Protein per 100 g (g)</label><input id="custom-p" name="p" type="number" min="0" max="200" step="0.1" required></div>
+              <div class="field"><label for="custom-c">Karbohidrat per 100 g (g)</label><input id="custom-c" name="c" type="number" min="0" max="200" step="0.1" required></div>
+              <div class="field"><label for="custom-f">Lemak per 100 g (g)</label><input id="custom-f" name="f" type="number" min="0" max="200" step="0.1" required></div>
+            </div><div id="custom-calorie-warning" class="notice" style="display:none;margin-top:12px">Kalori berbeda lebih dari 15% dari estimasi makro (4P + 4K + 9L). Periksa kembali nilai yang dimasukkan.</div>
+              <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px"><button class="button button-soft" type="button" data-action="toggle-custom-food">Batal</button><button class="button button-purple" type="submit">Simpan makanan</button></div>
+            </form>
+          </section>
+          <div class="food-tools"><label class="food-search-wrap">${icon("search")}<input id="catalog-search" class="search-input" type="search" value="${esc(query)}" placeholder="Cari nasi, tempe, ayam..." aria-label="Cari makanan di database"></label><span class="help">${foods.length} makanan</span></div>
+          ${foods.length ? `<div class="food-catalog">${foods.map(food=>`<article class="catalog-item card"><div class="card-title-row"><h3>${esc(food.name)}</h3><button class="icon-button" type="button" data-action="favorite-food" data-food="${esc(food.id)}" aria-label="${food.favorite?"Hapus dari":"Tambahkan ke"} favorit">${icon(food.favorite?"favorite":"favorite_border")}</button></div><div class="catalog-meta">${esc(food.serving || "Takaran lokal dapat disesuaikan")} · per 100 g${food.custom?" · Kustom":""}</div><div class="catalog-chips"><span class="chip cal">${formatNumber(food.kcal)} kcal</span><span class="chip pro">P ${formatNumber(food.p,1)}g</span><span class="chip carb">K ${formatNumber(food.c,1)}g</span><span class="chip fat">L ${formatNumber(food.f,1)}g</span></div><div class="catalog-actions"><button class="button button-soft button-small" type="button" data-action="quick-favorite" data-food="${esc(food.id)}">${icon("add")} Catat</button>${food.custom?`<button class="button button-soft button-small" type="button" data-action="delete-food" data-food="${esc(food.id)}">${icon("delete")} Hapus</button>`:""}</div></article>`).join("")}</div>`:`<div class="card empty-state">${icon("search_off")}<strong>Makanan tidak ditemukan</strong><span>Coba kata kunci lain atau tambahkan makanan kustom.</span></div>`}
+          <p class="disclaimer">Nilai pada database ini merupakan estimasi referensi umum, bukan pengganti data label produk atau saran ahli gizi. Periksa kembali takaran dan sumber pangan Anda.</p>`;
+      }
+      function renderHistory() {
+        const days=state.historyDays || 7;
+        const dates=[];
+        const base=new Date(state.selectedDate+"T12:00:00");
+        for(let i=days-1;i>=0;i--){const date=new Date(base);date.setDate(base.getDate()-i);dates.push(localDateString(date));}
+        const rows=dates.map(date=>({date, sum:totals(dayEntries(date)), water:Number(state.water[date])||0}));
+        const maxCalories=Math.max(Number(state.targets.kcal),...rows.map(row=>row.sum.kcal),1);
+        const recorded=rows.filter(row=>dayEntries(row.date).length);
+        const avg=recorded.length ? recorded.reduce((n,row)=>n+row.sum.kcal,0)/recorded.length : 0;
+        const avgP=recorded.length ? recorded.reduce((n,row)=>n+row.sum.p,0)/recorded.length : 0;
+        const goalDays=recorded.filter(row=>row.sum.kcal<=state.targets.kcal).length;
+        app.innerHTML=`<div class="page-heading"><div><p class="eyebrow">Perjalanan Anda</p><h1>Riwayat Nutrisi</h1><p class="subheading">Lihat pola asupan harian. Catatan disimpan pribadi di browser ini.</p></div><div class="history-controls"><div class="segmented" role="group" aria-label="Rentang riwayat"><button type="button" data-action="history-range" data-days="7" class="${days===7?"active":""}">7 hari</button><button type="button" data-action="history-range" data-days="30" class="${days===30?"active":""}">30 hari</button></div></div></div>
+          <div class="datebar card"><div class="date-controls"><button class="date-arrow" type="button" data-action="date-shift" data-days="-1" aria-label="Akhir periode sebelumnya">${icon("chevron_left")}</button><div class="date-label">${formatDate(dates[0],{day:"numeric",month:"short"})} – ${formatDate(state.selectedDate,{day:"numeric",month:"long",year:"numeric"})}<small>AKHIR PERIODE</small></div><button class="date-arrow" type="button" data-action="date-shift" data-days="1" aria-label="Akhir periode berikutnya">${icon("chevron_right")}</button></div><button class="button button-soft button-small" type="button" data-action="export-csv">${icon("download")} Unduh CSV</button></div>
+          <div class="history-stats"><article class="history-stat card"><span>Rata-rata kalori / hari tercatat</span><strong>${formatNumber(avg)} <small style="font-size:11px;font-weight:600">kcal</small></strong></article><article class="history-stat card"><span>Rata-rata protein</span><strong>${formatNumber(avgP,1)} <small style="font-size:11px;font-weight:600">g</small></strong></article><article class="history-stat card"><span>Hari tercatat</span><strong>${recorded.length}<small style="font-size:11px;font-weight:600"> / ${days}</small></strong></article><article class="history-stat card"><span>Hari di bawah target kalori</span><strong>${goalDays}<small style="font-size:11px;font-weight:600"> hari</small></strong></article></div>
+          <section class="card card-pad chart-card"><div class="card-title-row"><div><h2 class="section-title">Kalori harian</h2><p class="subheading" style="margin-top:4px">Garis target: ${formatNumber(state.targets.kcal)} kcal</p></div><span class="macro-tag protein">${days} HARI</span></div><div class="chart" role="img" aria-label="Grafik konsumsi kalori selama ${days} hari">${rows.map(row=>`<div class="chart-day"><span class="chart-value">${row.sum.kcal?formatNumber(row.sum.kcal):"—"}</span><div class="chart-bar-wrap"><div class="chart-bar" style="height:${row.sum.kcal?Math.max(3,row.sum.kcal/maxCalories*100):2}%;opacity:${row.sum.kcal?1:.2}" title="${formatNumber(row.sum.kcal)} kcal"></div></div><span class="chart-label">${formatDate(row.date,{weekday:"short",day:"numeric"})}</span></div>`).join("")}</div></section>
+          <section class="card card-pad"><div class="card-title-row" style="margin-bottom:8px"><h2 class="section-title">Rincian per hari</h2><span class="help">P · K · L dalam gram</span></div>${rows.slice().reverse().map(row=>`<div class="history-row"><span class="history-date">${formatDate(row.date,{weekday:"long",day:"numeric",month:"short"})}</span><span class="history-kcal">${row.sum.kcal?formatNumber(row.sum.kcal):"Belum ada"} <small>${row.sum.kcal?"kcal":""}</small></span><span class="history-macros">P ${formatNumber(row.sum.p,1)} · K ${formatNumber(row.sum.c,1)} · L ${formatNumber(row.sum.f,1)} g · Air ${formatNumber(row.water/1000,2)} L</span></div>`).join("")}</section>`;
+      }
+      function openLogModal(meal = state.currentMeal, foodId = null, entryId = null) {
+        const entry=entryId ? dayEntries().find(item=>item.id===entryId) : null;
+        const existingFood=foodId || (entry && entry.foodId);
+        const initialFood=foodById(existingFood) || state.foods[0];
+        modalState={ meal:entry ? entry.meal : (meal || state.currentMeal), foodId:initialFood ? initialFood.id : null, entryId:entryId||null, grams:entry ? entry.grams : 100 };
+        renderLogModal(entry,initialFood);
+      }
+      function renderLogModal(entry,food) {
+        const grams=entry ? entry.grams : (modalState.grams||100);
+        const nutrition=food ? scaledNutrition(food,grams) : {kcal:0,p:0,c:0,f:0};
+        modalRoot.innerHTML=`<div class="modal-backdrop" data-action="close-modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-header"><div><p class="eyebrow" style="margin-bottom:4px">${entry?"Perbarui catatan":"Catat cepat"}</p><h2 id="modal-title">${entry?"Ubah makanan":"Catat Makanan Cepat"}</h2></div><button class="icon-button" type="button" data-action="close-modal" aria-label="Tutup">${icon("close")}</button></div>
+          <form class="modal-body" id="log-form"><div class="field"><label for="log-meal">Waktu makan</label><select id="log-meal" name="meal">${MEALS.map(item=>`<option value="${item.id}" ${modalState.meal===item.id?"selected":""}>${item.name}</option>`).join("")}</select></div>
+          <div class="field"><label for="food-search">Cari makanan</label><input id="food-search" class="search-input" type="search" autocomplete="off" value="${esc(food?food.name:"")}" placeholder="Ketik nama, contoh: nasi atau tempe" required><div class="suggestions" id="food-suggestions" style="display:none"></div></div>
+          <input type="hidden" id="selected-food-id" value="${esc(food?food.id:"")}">
+          <div class="field"><label for="log-grams">Porsi (gram/ml)</label><input id="log-grams" name="grams" type="number" min="1" max="10000" step="1" value="${esc(grams)}" required><small>Takaran umum: ${esc(food ? food.serving : "pilih makanan terlebih dahulu")}</small></div>
+          <div class="nutrition-preview" id="nutrition-preview"><strong>${formatNumber(nutrition.kcal)} kcal</strong><div class="preview-chips"><span class="chip pro">Protein ${formatNumber(nutrition.p,1)} g</span><span class="chip carb">Karbo ${formatNumber(nutrition.c,1)} g</span><span class="chip fat">Lemak ${formatNumber(nutrition.f,1)} g</span></div></div>
+          <div class="modal-footer"><button class="button button-soft" type="button" data-action="close-modal">Batal</button><button class="button button-primary" type="submit">${icon("check_circle")} ${entry?"Simpan perubahan":"Simpan makanan"}</button></div></form></section></div>`;
+        document.getElementById("food-search").focus();
+      }
+      function updateLogPreview() {
+        if(!modalState) return;
+        const food=foodById(document.getElementById("selected-food-id").value);
+        const grams=Number(document.getElementById("log-grams").value)||0;
+        modalState.grams=grams;
+        if(!food) return;
+        const n=scaledNutrition(food,grams);
+        document.getElementById("nutrition-preview").innerHTML=`<strong>${formatNumber(n.kcal)} kcal</strong><div class="preview-chips"><span class="chip pro">Protein ${formatNumber(n.p,1)} g</span><span class="chip carb">Karbo ${formatNumber(n.c,1)} g</span><span class="chip fat">Lemak ${formatNumber(n.f,1)} g</span></div>`;
+      }
+      function showSuggestions(query) {
+        const box=document.getElementById("food-suggestions");
+        if(!box) return;
+        const q=query.trim().toLocaleLowerCase("id");
+        if(!q){box.style.display="none";return;}
+        const matches=state.foods.filter(food=>matchesFood(food,q)).slice(0,7);
+        box.innerHTML=matches.length ? matches.map(food=>`<button class="suggestion" type="button" data-action="select-food" data-food="${esc(food.id)}"><span>${esc(food.name)}</span><small>${formatNumber(food.kcal)} kcal / 100 g</small></button>`).join("") : `<div class="suggestion" style="color:var(--muted)">Tidak ditemukan. Tambahkan melalui Database Makanan.</div>`;
+        box.style.display="block";
+      }
+      function addEntry(meal,food,grams,entryId=null) {
+        const entries=dayEntries();
+        const next=makeEntry(food,grams);
+        if(entryId){
+          const index=entries.findIndex(entry=>entry.id===entryId);
+          if(index<0){showToast("Catatan makanan tidak ditemukan.");return false;}
+          next.id=entryId;
+          next.createdAt=entries[index].createdAt;
+          entries[index]={...next,meal};
+        } else {
+          entries.push({...next,meal});
+        }
+        state.logs[state.selectedDate]=entries;
+        state.currentMeal=meal;
+        saveState(); render();
+        showToast(entryId ? "Catatan makanan berhasil diperbarui." : `${food.name} berhasil dicatat.`);
+        return true;
+      }
+      function calculateCustomWarning() {
+        const inputs=["custom-kcal","custom-p","custom-c","custom-f"].map(id=>document.getElementById(id));
+        if(inputs.some(input=>!input)) return;
+        const [kcal,p,c,f]=inputs.map(input=>Number(input.value)||0);
+        const estimate=4*p+4*c+9*f;
+        const differs=estimate>0 && Math.abs(kcal-estimate)/estimate>.15;
+        document.getElementById("custom-calorie-warning").style.display=differs?"block":"none";
+      }
+      function submitGoals(form) {
+        const data=new FormData(form);
+        const profile={sex:data.get("sex"),age:Number(data.get("age")),height:Number(data.get("height")),weight:Number(data.get("weight")),activity:Number(data.get("activity")),goal:data.get("goal"),intensity:data.get("intensity")};
+        if(!profile.age || !profile.height || !profile.weight){showToast("Lengkapi profil dengan nilai yang valid.");return;}
+        state.profile=profile;
+        const calculated=calculateTargets(profile);
+        state.targets={...state.targets,kcal:calculated.kcal,p:calculated.p,c:calculated.c,f:calculated.f};
+        saveState();render();showToast("Target otomatis berhasil dihitung.");
+      }
+      function saveManualTargets() {
+        const fields=["kcal","p","c","f","water"].map(name=>document.querySelector(`[name="${name}"]`));
+        const values=fields.map(field=>Number(field.value));
+        if(values.some(value=>!Number.isFinite(value)||value<=0)){showToast("Masukkan target yang lebih besar dari 0.");return;}
+        state.targets={kcal:values[0],p:values[1],c:values[2],f:values[3],water:values[4]};
+        saveState();render();showToast("Target harian berhasil disimpan.");
+      }
+      function addCustomFood(form) {
+        const data=new FormData(form);
+        const name=String(data.get("name")||"").trim();
+        const nutrients={kcal:Number(data.get("kcal")),p:Number(data.get("p")),c:Number(data.get("c")),f:Number(data.get("f"))};
+        if(!name || Object.values(nutrients).some(value=>!Number.isFinite(value)||value<0)){showToast("Periksa nama dan angka nutrisi makanan.");return;}
+        const food={id:`custom-${cryptoId()}`,name,...nutrients,serving:"1 porsi (100 g)",source:"Makanan kustom",custom:true,favorite:false};
+        state.foods.push(food);
+        saveState();renderFoods(document.getElementById("catalog-search")?.value||"");showToast(`${name} ditambahkan ke database.`);
+      }
+      function exportCsv() {
+        const entries=dayEntries();
+        const rows=[["tanggal","waktu_makan","makanan","porsi_g","kalori_kcal","protein_g","karbohidrat_g","lemak_g"],...entries.map(entry=>[state.selectedDate,entry.meal,entry.name,entry.grams,entry.kcal,entry.p,entry.c,entry.f])];
+        const csv=rows.map(row=>row.map(value=>`"${String(value).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+        const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+        const url=URL.createObjectURL(blob);
+        const link=document.createElement("a");link.href=url;link.download=`nutrimacro-${state.selectedDate}.csv`;document.body.append(link);link.click();link.remove();URL.revokeObjectURL(url);
+        showToast("Ringkasan CSV berhasil diunduh.");
+      }
+      function shiftDate(amount) {
+        const date=new Date(state.selectedDate+"T12:00:00");date.setDate(date.getDate()+Number(amount));
+        state.selectedDate=localDateString(date);saveState();render();
+      }
+      function resetProfile() {
+        state.profile={sex:"pria",age:30,height:170,weight:70,activity:1.55,goal:"maintain",intensity:"light"};
+        const calc=calculateTargets(state.profile);
+        state.targets={...state.targets,kcal:calc.kcal,p:calc.p,c:calc.c,f:calc.f};
+        saveState();render();showToast("Profil contoh diterapkan.");
+      }
+      document.addEventListener("click", event => {
+        const pageButton=event.target.closest("[data-page]");
+        if(pageButton){state.page=pageButton.dataset.page;render();return;}
+        const link=event.target.closest("[data-page-link]");
+        if(link){event.preventDefault();state.page=link.dataset.pageLink;render();return;}
+        const target=event.target.closest("[data-action]");
+        if(!target)return;
+        const action=target.dataset.action;
+        if(action==="date-shift")shiftDate(target.dataset.days);
+        else if(action==="open-log")openLogModal(target.dataset.meal||state.currentMeal);
+        else if(action==="toggle-meal"){const id=target.dataset.meal;state.collapsed[id]=!state.collapsed[id];render();}
+        else if(action==="close-modal"){modalRoot.innerHTML="";modalState=null;}
+        else if(action==="close-modal-backdrop" && event.target===target){modalRoot.innerHTML="";modalState=null;}
+        else if(action==="select-food"){
+          const food=foodById(target.dataset.food);if(!food)return;
+          modalState.foodId=food.id;
+          document.getElementById("selected-food-id").value=food.id;
+          document.getElementById("food-search").value=food.name;
+          document.getElementById("food-suggestions").style.display="none";
+          updateLogPreview();
+        }
+        else if(action==="edit-entry")openLogModal(state.currentMeal,null,target.dataset.entry);
+        else if(action==="delete-entry"){
+          const entries=dayEntries();const index=entries.findIndex(entry=>entry.id===target.dataset.entry);
+          if(index>=0){const [removed]=entries.splice(index,1);state.logs[state.selectedDate]=entries;saveState();render();showToast(`${removed.name} dihapus dari catatan.`);}
+        }
+        else if(action==="add-water"){
+          state.water[state.selectedDate]=(Number(state.water[state.selectedDate])||0)+250;saveState();render();showToast("250 ml air berhasil dicatat.");
+        }
+        else if(action==="water-glass"){
+          const index=Number(target.dataset.index);const current=Number(state.water[state.selectedDate])||0;
+          state.water[state.selectedDate]=Math.max(0,index+1===Math.ceil(current/250)?index*250:(index+1)*250);
+          saveState();render();showToast("Catatan hidrasi diperbarui.");
+        }
+        else if(action==="quick-favorite")openLogModal(state.currentMeal,target.dataset.food);
+        else if(action==="favorite-food"){
+          const food=foodById(target.dataset.food);if(food){food.favorite=!food.favorite;saveState();renderFoods(document.getElementById("catalog-search")?.value||"");showToast(food.favorite?"Ditambahkan ke favorit.":"Dihapus dari favorit.");}
+        }
+        else if(action==="toggle-custom-food"){
+          const panel=document.getElementById("custom-food-panel");if(panel)panel.style.display=panel.style.display==="none"?"block":"none";
+        }
+        else if(action==="history-range"){state.historyDays=Number(target.dataset.days);render();}
+        else if(action==="export-csv")exportCsv();
+        else if(action==="save-targets")saveManualTargets();
+        else if(action==="reset-profile")resetProfile();
+        else if(action==="delete-food"){
+          const food=foodById(target.dataset.food);
+          if(food && food.custom && confirm(`Hapus "${food.name}" dari database? Catatan sebelumnya tetap tersimpan.`)){
+            state.foods=state.foods.filter(item=>item.id!==food.id);saveState();renderFoods();showToast("Makanan kustom dihapus.");
+          }
+        }
+      });
+      document.addEventListener("input", event => {
+        if(event.target.id==="food-search"){showSuggestions(event.target.value);}
+        if(event.target.id==="log-grams"){updateLogPreview();}
+        if(event.target.id==="catalog-search"){
+          const position=event.target.selectionStart;renderFoods(event.target.value);
+          const next=document.getElementById("catalog-search");next.focus();next.setSelectionRange(position,position);
+        }
+        if(event.target.id==="custom-kcal"||event.target.id==="custom-p"||event.target.id==="custom-c"||event.target.id==="custom-f")calculateCustomWarning();
+        if(event.target.name==="kcal"){
+          const limit=state.profile.sex==="wanita"?1200:1500;const warning=document.getElementById("safe-warning");
+          if(warning)warning.style.display=Number(event.target.value)<limit?"block":"none";
+        }
+      });
+      document.addEventListener("change", event => {
+        if(event.target.id==="log-meal" && modalState){modalState.meal=event.target.value;state.currentMeal=event.target.value;}
+      });
+      document.addEventListener("submit", event => {
+        if(event.target.id==="log-form"){
+          event.preventDefault();
+          const food=foodById(document.getElementById("selected-food-id").value);
+          const grams=Number(document.getElementById("log-grams").value);
+          if(!food){showToast("Pilih makanan dari hasil pencarian terlebih dahulu.");document.getElementById("food-search").focus();return;}
+          if(!Number.isFinite(grams)||grams<=0){showToast("Masukkan porsi yang lebih besar dari 0 gram.");return;}
+          const wasEdit=modalState.entryId;
+          if(addEntry(document.getElementById("log-meal").value,food,grams,wasEdit)){modalRoot.innerHTML="";modalState=null;}
+        } else if(event.target.id==="goal-form"){event.preventDefault();submitGoals(event.target);}
+        else if(event.target.id==="custom-food-form"){event.preventDefault();addCustomFood(event.target);}
+      });
+      document.addEventListener("keydown", event => {
+        if(event.key==="Escape" && modalState){modalRoot.innerHTML="";modalState=null;}
+        if(event.key==="Enter" && event.target.id==="food-search"){
+          const first=document.querySelector("#food-suggestions [data-food]");
+          if(first){event.preventDefault();first.click();}
+        }
+      });
+      if(!localStorage.getItem(STORAGE_KEY))saveState();
+      render();
+    })();
+  </script>
+</body>
+</html>
